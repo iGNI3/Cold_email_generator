@@ -9,7 +9,11 @@ load_dotenv()
 
 class Chain:
     def __init__(self):
-        self.llm = ChatGroq(temperature=0, groq_api_key=os.getenv("GROQ_API_KEY"), model_name="llama-3.3-70b-versatile")
+        self.llm = ChatGroq(
+            temperature=0,
+            groq_api_key=os.getenv("GROQ_API_KEY"),
+            model_name="llama-3.3-70b-versatile"
+        )
 
     def extract_jobs(self, cleaned_text):
         prompt_extract = PromptTemplate.from_template(
@@ -32,30 +36,31 @@ class Chain:
             raise OutputParserException("Context too big. Unable to parse jobs.")
         return res if isinstance(res, list) else [res]
 
-    def write_mail(self, job, links):
+
+    def write_mail(self, job, links, user_name="Ankit", user_company="AKD Limited"):
         prompt_email = PromptTemplate.from_template(
             """
             ### JOB DESCRIPTION:
             {job_description}
 
             ### INSTRUCTION:
-            You are Ankit, a business development executive at AKD Limited. AKD LIMITED is an AI & Software Consulting company dedicated to facilitating
-            the seamless integration of business processes through automated tools. 
-            Over our experience, we have empowered numerous enterprises with tailored solutions, fostering scalability, 
-            process optimization, cost reduction, and heightened overall efficiency. 
-            Your job is to write a cold email to the client regarding the job mentioned above describing the capability of AKD LIMITED 
+            You are {user_name}, a business development executive at {user_company}. {user_company} is an AI & Software Consulting company dedicated to facilitating
+            the seamless integration of business processes through automated tools.
+            Over our experience, we have empowered numerous enterprises with tailored solutions, fostering scalability,
+            process optimization, cost reduction, and heightened overall efficiency.
+            Your job is to write a cold email to the client regarding the job mentioned above describing the capability of {user_company}
             in fulfilling their needs.
-            Also add the most relevant ones from the following links to showcase AKD Limited portfolio: {link_list}
-            Remember you are Ankit, BDE at AKD LIMITED. 
+            Also add the most relevant ones from the following links to showcase {user_company} portfolio: {link_list}
+            Remember you are {user_name}, BDE at {user_company}.
             Do not provide a preamble.
             ### EMAIL (NO PREAMBLE):
-
-
             """
         )
         chain_email = prompt_email | self.llm
-        res = chain_email.invoke({"job_description": str(job), "link_list": links})
+        res = chain_email.invoke({
+            "job_description": str(job),
+            "link_list": links,
+            "user_name": user_name,
+            "user_company": user_company
+        })
         return res.content
-
-if __name__ == "__main__":
-    print(os.getenv("GROQ_API_KEY"))
