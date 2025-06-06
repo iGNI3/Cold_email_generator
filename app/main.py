@@ -8,10 +8,13 @@ def create_streamlit_app(llm, portfolio, clean_text):
     st.set_page_config(layout="wide", page_title="Cold Email Generator", page_icon="📧")
     st.title("📧 Cold Mail Generator")
 
+    # Input fields
     url_input = st.text_input("Enter a job posting URL:", value="https://careers.nike.com/data-engineer-itc/job/R-63119")
+    user_name = st.text_input("Your Name", value="Ankit")
+    user_company = st.text_input("Your Company", value="AKD Limited")
     submit_button = st.button("Analyze Job Post")
 
-    # Store jobs and URL in session state
+    # Session state for jobs and url
     if 'jobs' not in st.session_state:
         st.session_state.jobs = []
     if 'url' not in st.session_state:
@@ -53,7 +56,7 @@ def create_streamlit_app(llm, portfolio, clean_text):
     if st.button("Generate Cold Email"):
         try:
             links = portfolio.query_links(skills)
-            email = llm.write_mail(job, links)
+            email = llm.write_mail(job, links, user_name=user_name, user_company=user_company)
             st.success("Cold email generated!")
             with st.expander("Preview Cold Email (Markdown)", expanded=True):
                 st.markdown(email)
